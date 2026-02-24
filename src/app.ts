@@ -3,7 +3,7 @@ import cors from "cors";
 import healthRoutes from "./modules/health/healthRoutes";
 import userRoutes from "./modules/user/userRoutes";
 import tenantRoute from "./modules/tenant/tenantRoutes";
-import { tenatRsolver as tenantRsolver } from "./middleware/tenantResolver";
+import { tenantRsolver as tenantRsolver } from "./middleware/tenantResolver";
 import { errorHandler } from "./middleware/globalError";
 const app = express();
 

@@ -1,30 +1,28 @@
 import { Request, Response } from "express";
 import { UserService } from "./userService";
 import { IUser } from "./userInterface";
+import { ApiError } from "../../utils/apiError";
+import { ApiResponse } from "../../utils/apiResponse";
 
 export const createUserController = async (
   req: Request,
-  res: Response
-) => {
-  try {
-    const data: IUser = req.body;
-    const tenantId = (req as any).tenant
+  res: Response,
+): Promise<void> => {
+  const data: IUser = req.body;
+  const tenantId = (req as any).tenant;
 
-    if (!tenantId) {
-      return res.status(400).json({ message: "No tenantId found" });
-    }
+  const user = await UserService.createUser(data, tenantId);
 
-    const user = await UserService.createUser(data, tenantId);
-
-    return res.status(201).json({
-      message: "User Created Successfully",
-      data: user,
-    });
-
-  } catch (error: unknown) {
-    return res.status(500).json({
-      message: "Something went wrong",
-    });
-  }
+  res.status(201).json(new ApiResponse("User created Successfully", user));
 };
-;
+
+export const getUserController = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const tenantId = (req as any).tenant;
+
+  const users = await UserService.getUser(tenantId);
+
+  res.status(200).json(new ApiResponse("Users fethed Successfullt", users));
+};

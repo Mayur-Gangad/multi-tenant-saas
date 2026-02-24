@@ -15,11 +15,6 @@ const tenantSchema = new Schema<ITenant>(
       unique: true,
       trim: true,
     },
-    isActive: {
-      type: Boolean,
-      required: true,
-      default: true,
-    },
     status:{
         type:String,
         enum:["active", "suspended"],

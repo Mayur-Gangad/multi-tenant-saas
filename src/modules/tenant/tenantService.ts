@@ -12,4 +12,13 @@ export class TenantService {
 
     return TenantDao.createTenant(tenantData);
   }
+
+  static async getAllTenant() {
+    const tenant: ITenant[] = await TenantDao.findAll();
+
+    if (!tenant) {
+      throw new ApiError(404, "No tenants found");
+    }
+    return tenant;
+  }
 }

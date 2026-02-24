@@ -1,32 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import { TenantDao } from "../modules/tenant/tenantDao";
+import { ApiError } from "../utils/apiError";
 
-export const tenatRsolver = async (
+export const tenantRsolver = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  try {
+  const subDomain = req.headers["x-tenant-id"] as string;
 
-    
-    const host = req.headers.host;
-    if (!host) {
-      return res.status(400).json({ message: "Host header is missing" });
-    }
-
-    const subDomain = host.split(".")[0];
-
-    console.log(`subDomain` , subDomain)
-    const tenant = await TenantDao.findByDomain("acme");
-    if (!tenant) {
-      return res.status(400).json({ message: "tenant not found" });
-    }
-
-    (req as any).tenant = tenant;
-
-
-    next();
-  } catch (error) {
-    return res.status(500).json({ message: "Tenant resolution failed" });
+  if (!subDomain) {
+    throw new ApiError(400, "Tenant header missing");
   }
+  const tenant = await TenantDao.findByDomain(subDomain);
+
+  if (!tenant) {
+    throw new ApiError(400, "Tenant not found");
+  }
+  (req as any).tenant = tenant;
+  next();
 };
