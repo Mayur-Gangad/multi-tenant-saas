@@ -1,24 +1,30 @@
 import { ApiError } from "../../utils/apiError";
 import { TenantDao } from "./tenantDao";
-import { ITenant } from "./tenantInterface";
+import { CreateTenantDto, TenantResponseDto } from "./tenantDTO";
 
 export class TenantService {
-  static async createTenant(tenantData: ITenant) {
-    const existing = await TenantDao.findByDomain(tenantData.subDomain);
+  static async createTenant(
+    tenant: CreateTenantDto,
+  ): Promise<TenantResponseDto> {
+    const existing = await TenantDao.findBySubDomain(tenant.subDomain);
 
     if (existing) {
-      throw new ApiError(409, "Domain already exists");
+      throw new ApiError(409, "Tenant allredy exists");
     }
 
-    return TenantDao.createTenant(tenantData);
-  }
+    const tenantCreated = await TenantDao.createTenant(tenant);
 
-  static async getAllTenant() {
-    const tenant: ITenant[] = await TenantDao.findAll();
-
-    if (!tenant) {
-      throw new ApiError(404, "No tenants found");
-    }
-    return tenant;
+    return {
+      id: tenantCreated._id.toString(),
+      name: tenantCreated.name,
+      subDomain: tenantCreated.subDomain,
+      contactEmail: tenantCreated.contactEmail,
+      contactPhone: tenantCreated.contactPhone,
+      address: tenantCreated.address,
+      status: tenantCreated.status,
+      plan: tenantCreated.plan,
+      createdAt: tenantCreated.createdAt.toISOString(),
+      updatedAt: tenantCreated.updatedAt.toISOString(),
+    };
   }
 }

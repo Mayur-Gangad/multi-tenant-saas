@@ -9,10 +9,13 @@ export const createUserController = async (
   res: Response,
 ): Promise<void> => {
   const data: IUser = req.body;
-  const tenantId = (req as any).tenant;
+  const tenantId = req.tenant?._id!;
+
+  console.log('Creating user....')
 
   const user = await UserService.createUser(data, tenantId);
 
+  console.log("createUserController :", user)
   res.status(201).json(new ApiResponse("User created Successfully", user));
 };
 

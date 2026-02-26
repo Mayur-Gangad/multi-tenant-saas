@@ -1,13 +1,12 @@
 import { Types } from "mongoose";
 
 export interface IUser {
-  [x: string]: any;
+  _id?:Types.ObjectId;
   name: string;
   email: string;
   password?: string;
-  role?: "owner" | "admin" | "manager" | "user";
-  status?: "active" | "inactive";
-
+  role?: string
+  status?: string;
   tenantId?: Types.ObjectId;
 }
 

@@ -1,5 +1,7 @@
-import { Schema, model } from "mongoose";
-import {ITenant} from "./tenantInterface";
+import { model, Schema, HydratedDocument } from "mongoose";
+import { ITenant } from "./tenantInterface";
+
+export type TenantDocument = HydratedDocument<ITenant>;
 
 const tenantSchema = new Schema<ITenant>(
   {
@@ -15,15 +17,31 @@ const tenantSchema = new Schema<ITenant>(
       unique: true,
       trim: true,
     },
-    status:{
-        type:String,
-        enum:["active", "suspended"],
-        default:"active"
+    contactEmail: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    plan:{
-        type:String,
-        enum:["free","pro","enterprise"]
-    }
+    contactPhone: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "suspended"],
+      default: "active",
+      required: true,
+    },
+    plan: {
+      type: String,
+      enum: ["free", "pro", "enterprise"],
+      default: "free",
+      required: true,
+    },
   },
   {
     timestamps: true,

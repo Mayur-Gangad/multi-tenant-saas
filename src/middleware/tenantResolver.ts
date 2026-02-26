@@ -2,21 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import { TenantDao } from "../modules/tenant/tenantDao";
 import { ApiError } from "../utils/apiError";
 
-export const tenantRsolver = async (
+export const tenantResolver = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const subDomain = req.headers["x-tenant-id"] as string;
+  const subDomain = req.headers["x-tenant-subdomain"] as string;
 
   if (!subDomain) {
     throw new ApiError(400, "Tenant header missing");
   }
-  const tenant = await TenantDao.findByDomain(subDomain);
+  const tenant = await TenantDao.findBySubDomain(subDomain);
 
+  
   if (!tenant) {
     throw new ApiError(400, "Tenant not found");
   }
-  (req as any).tenant = tenant;
+  req.tenant = tenant;
   next();
 };
