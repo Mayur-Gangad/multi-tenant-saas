@@ -10,7 +10,7 @@ export const tenantResolver = async (
   const subDomain = req.headers["x-tenant-subdomain"] as string;
 
   if (!subDomain) {
-    throw new ApiError(400, "Tenant header missing");
+    throw new ApiError(404, "Tenant header missing");
   }
   const tenant = await TenantDao.findBySubDomain(subDomain);
 

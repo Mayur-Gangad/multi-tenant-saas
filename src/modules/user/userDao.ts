@@ -1,28 +1,20 @@
-import { User } from "./userModel";
+import { CreateUserDto } from "./userDTO";
 import { IUser } from "./userInterface";
-import { Types } from "mongoose";
-import { HydratedDocument } from "mongoose";
+import { User } from "./userModel";
 
 export class UserDao {
-  static async create(data: IUser): Promise<HydratedDocument<IUser>> {
-    const user = await User.create(data);
-    return user
-  }
-
-  static async getUserByTenantId(tenantId: Types.ObjectId): Promise<IUser[]> {
-    const user = await User.find({ tenantId }).lean();
-    return user;
+  static async createUser(user: CreateUserDto): Promise<IUser> {
+    return User.create(user);
   }
 
   static async getUserByEmail(
     email: string,
-  ): Promise<Pick<
-    IUser,
-    "password" | "email" | "_id" | "role" | "tenantId"
-  > | null> {
-    const user = await User.findOne({ email })
-      .select("password email _id role tenantId")
-      .lean();
-    return user;
+    tenantId: string,
+  ): Promise<IUser | null> {
+    return User.findOne({ email, tenantId });
+  }
+
+  static async getAllUsers(tenantId: string): Promise<IUser[]> {
+    return User.find({ tenantId });
   }
 }
