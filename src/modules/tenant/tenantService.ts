@@ -27,4 +27,20 @@ export class TenantService {
       updatedAt: tenantCreated.updatedAt.toISOString(),
     };
   }
+
+  static async getAllTenants(): Promise<TenantResponseDto[]> {
+    const allTenants = await TenantDao.findAllTenants();
+    return allTenants.map((tenant)=>({
+     id: tenant._id.toString(),
+      name: tenant.name,
+      subDomain: tenant.subDomain,
+      contactEmail: tenant.contactEmail,
+      contactPhone: tenant.contactPhone,
+      address: tenant.address,
+      status: tenant.status,
+      plan: tenant.plan,
+      createdAt: tenant.createdAt.toISOString(),
+      updatedAt: tenant.updatedAt.toISOString(),
+    }))
+  }
 }

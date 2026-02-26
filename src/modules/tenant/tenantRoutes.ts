@@ -1,11 +1,9 @@
 import { Router } from "express";
-import {
-  createTenantController,
-
-} from "./tenantController";
+import { createTenantController ,getAllTenantsController} from "./tenantController";
 const router = Router();
 
 router.post("/", createTenantController);
-// router.get("/", getAllTenantController);
+
+router.get("/",getAllTenantsController);
 
 export default router;
