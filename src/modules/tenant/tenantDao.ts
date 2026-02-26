@@ -14,4 +14,8 @@ export class TenantDao {
   static async findAllTenants(): Promise<ITenant[]> {
     return Tenant.find().lean();
   }
+
+  static async findTenantBySlug(tenantSlug: string): Promise<ITenant | null> {
+    return Tenant.findOne({ subDomain: tenantSlug });
+  }
 }

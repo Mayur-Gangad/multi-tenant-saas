@@ -14,7 +14,6 @@ export const tenantResolver = async (
   }
   const tenant = await TenantDao.findBySubDomain(subDomain);
 
-  
   if (!tenant) {
     throw new ApiError(400, "Tenant not found");
   }

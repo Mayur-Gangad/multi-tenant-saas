@@ -1,8 +1,23 @@
 import { ApiError } from "../../utils/apiError";
 import { TenantDao } from "./tenantDao";
 import { CreateTenantDto, TenantResponseDto } from "./tenantDTO";
+import { ITenant } from "./tenantInterface";
 
 export class TenantService {
+  public static toTenantResponseDto(tenant: ITenant): TenantResponseDto {
+    return {
+      id: tenant._id.toString(),
+      name: tenant.name,
+      subDomain: tenant.subDomain,
+      contactEmail: tenant.contactEmail,
+      contactPhone: tenant.contactPhone,
+      address: tenant.address,
+      status: tenant.status,
+      plan: tenant.plan,
+      createdAt: tenant.createdAt.toISOString(),
+      updatedAt: tenant.updatedAt.toISOString(),
+    };
+  }
   static async createTenant(
     tenant: CreateTenantDto,
   ): Promise<TenantResponseDto> {
@@ -14,33 +29,22 @@ export class TenantService {
 
     const tenantCreated = await TenantDao.createTenant(tenant);
 
-    return {
-      id: tenantCreated._id.toString(),
-      name: tenantCreated.name,
-      subDomain: tenantCreated.subDomain,
-      contactEmail: tenantCreated.contactEmail,
-      contactPhone: tenantCreated.contactPhone,
-      address: tenantCreated.address,
-      status: tenantCreated.status,
-      plan: tenantCreated.plan,
-      createdAt: tenantCreated.createdAt.toISOString(),
-      updatedAt: tenantCreated.updatedAt.toISOString(),
-    };
+    return TenantService.toTenantResponseDto(tenantCreated);
   }
 
   static async getAllTenants(): Promise<TenantResponseDto[]> {
     const allTenants = await TenantDao.findAllTenants();
-    return allTenants.map((tenant)=>({
-     id: tenant._id.toString(),
-      name: tenant.name,
-      subDomain: tenant.subDomain,
-      contactEmail: tenant.contactEmail,
-      contactPhone: tenant.contactPhone,
-      address: tenant.address,
-      status: tenant.status,
-      plan: tenant.plan,
-      createdAt: tenant.createdAt.toISOString(),
-      updatedAt: tenant.updatedAt.toISOString(),
-    }))
+
+    return allTenants.map(TenantService.toTenantResponseDto);
+  }
+
+  static async findTenantBySlug(
+    tenantSlug: string,
+  ): Promise<TenantResponseDto> {
+    const tenant = await TenantDao.findTenantBySlug(tenantSlug);
+    if (!tenant) {
+      throw new ApiError(404, `No Tenant found with domain :${tenantSlug}`);
+    }
+    return TenantService.toTenantResponseDto(tenant);
   }
 }
