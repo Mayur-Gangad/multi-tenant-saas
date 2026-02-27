@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use("/api/health", healthRoutes);
 
-app.use("/user", tenantResolver, userRoutes);
+app.use("/user",tenantResolver, userRoutes);
 
 app.use("/tenant", tenantRoute);
 

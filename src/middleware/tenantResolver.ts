@@ -7,6 +7,7 @@ export const tenantResolver = async (
   res: Response,
   next: NextFunction,
 ) => {
+
   const subDomain = req.headers["x-tenant-subdomain"] as string;
 
   if (!subDomain) {
