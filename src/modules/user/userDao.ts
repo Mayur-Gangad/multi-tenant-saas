@@ -1,13 +1,20 @@
-import { User } from "./userModel";
+import { CreateUserDto } from "./userDTO";
 import { IUser } from "./userInterface";
+import { User } from "./userModel";
 
 export class UserDao {
-  static async create(data: IUser): Promise<IUser> {
-    return User.create(data);
+  static async createUser(user: CreateUserDto): Promise<IUser> {
+    return User.create(user);
   }
 
-  static async getUser(tenantId: string): Promise<IUser[]> {
-    const user: IUser[] = await User.find({ tenantId }).lean();
-    return user;
+  static async getUserByEmail(
+    email: string,
+    tenantId: string,
+  ): Promise<IUser | null> {
+    return User.findOne({ email, tenantId });
+  }
+
+  static async getAllUsers(tenantId: string): Promise<IUser[]> {
+    return User.find({ tenantId });
   }
 }

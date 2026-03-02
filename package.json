@@ -4,7 +4,7 @@
   "description": "A multi-tenant SaaS-based task management platform built with a modular monolithic architecture using the MERN stack. The system implements tenant isolation, role-based access control, JWT authentication, event-driven audit logging, and scalable architecture principles.",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/server.ts",
+    "dev": "ts-node --files src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -23,6 +23,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
@@ -32,6 +33,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
     "zod": "^4.3.6"

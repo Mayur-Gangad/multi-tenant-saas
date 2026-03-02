@@ -1,24 +1,50 @@
 import { ApiError } from "../../utils/apiError";
 import { TenantDao } from "./tenantDao";
+import { CreateTenantDto, TenantResponseDto } from "./tenantDTO";
 import { ITenant } from "./tenantInterface";
 
 export class TenantService {
-  static async createTenant(tenantData: ITenant) {
-    const existing = await TenantDao.findByDomain(tenantData.subDomain);
+  public static toTenantResponseDto(tenant: ITenant): TenantResponseDto {
+    return {
+      id: tenant._id.toString(),
+      name: tenant.name,
+      subDomain: tenant.subDomain,
+      contactEmail: tenant.contactEmail,
+      contactPhone: tenant.contactPhone,
+      address: tenant.address,
+      status: tenant.status,
+      plan: tenant.plan,
+      createdAt: tenant.createdAt.toISOString(),
+      updatedAt: tenant.updatedAt.toISOString(),
+    };
+  }
+  static async createTenant(
+    tenant: CreateTenantDto,
+  ): Promise<TenantResponseDto> {
+    const existing = await TenantDao.findBySubDomain(tenant.subDomain);
 
     if (existing) {
-      throw new ApiError(409, "Domain already exists");
+      throw new ApiError(409, "Tenant allredy exists");
     }
 
-    return TenantDao.createTenant(tenantData);
+    const tenantCreated = await TenantDao.createTenant(tenant);
+
+    return TenantService.toTenantResponseDto(tenantCreated);
   }
 
-  static async getAllTenant() {
-    const tenant: ITenant[] = await TenantDao.findAll();
+  static async getAllTenants(): Promise<TenantResponseDto[]> {
+    const allTenants = await TenantDao.findAllTenants();
 
+    return allTenants.map(TenantService.toTenantResponseDto);
+  }
+
+  static async findTenantBySlug(
+    tenantSlug: string,
+  ): Promise<TenantResponseDto> {
+    const tenant = await TenantDao.findTenantBySlug(tenantSlug);
     if (!tenant) {
-      throw new ApiError(404, "No tenants found");
+      throw new ApiError(404, `No Tenant found with domain :${tenantSlug}`);
     }
-    return tenant;
+    return TenantService.toTenantResponseDto(tenant);
   }
 }
