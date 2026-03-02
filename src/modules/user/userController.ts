@@ -32,3 +32,4 @@ export const userLoginController = async (req: Request, res: Response) => {
   );
   res.status(200).json(new ApiResponse("Login Successfull", token));
 };
+

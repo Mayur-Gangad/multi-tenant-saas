@@ -4,15 +4,15 @@ import {
   getAllUserController,
   userLoginController,
 } from "./userController";
-;
-
+import { authMiddleware } from "../../middleware/authMiddleware";
+import { authoriseMiddleware } from "../../middleware/authoriseMiddleware";
 const router = Router();
 
 router.post("/login", userLoginController);
 
-router.post("/", createUserController);
+router.post("/admin",authMiddleware,authoriseMiddleware("admin"), createUserController);
 
-router.get("/", getAllUserController);
+router.get("/admin",authMiddleware,authoriseMiddleware("guest"), getAllUserController);
 
 
 export default router;
