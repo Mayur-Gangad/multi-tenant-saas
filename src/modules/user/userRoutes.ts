@@ -12,7 +12,7 @@ router.post("/login", userLoginController);
 
 router.post("/admin",authMiddleware,authoriseMiddleware("admin"), createUserController);
 
-router.get("/admin",authMiddleware,authoriseMiddleware("guest"), getAllUserController);
+router.get("/admin",authMiddleware,authoriseMiddleware("admin"), getAllUserController);
 
 
 export default router;
