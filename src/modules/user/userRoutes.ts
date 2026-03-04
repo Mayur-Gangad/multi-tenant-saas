@@ -1,18 +1,20 @@
 import { Router } from "express";
-import {
-  createUserController,
-  getAllUserController,
-  userLoginController,
-} from "./userController";
+import { createUserController, getAllUserController } from "./userController";
 import { authMiddleware } from "../../middleware/authMiddleware";
 import { authoriseMiddleware } from "../../middleware/authoriseMiddleware";
 const router = Router();
 
-router.post("/login", userLoginController);
+router.get(
+  "/",
+  authMiddleware,
+  authoriseMiddleware("admin"),
+  getAllUserController,
+);
 
-router.post("/admin",authMiddleware,authoriseMiddleware("admin"), createUserController);
-
-router.get("/admin",authMiddleware,authoriseMiddleware("admin"), getAllUserController);
-
-
+router.post(
+  "/",
+  authMiddleware,
+  authoriseMiddleware("admin"),
+  createUserController,
+);
 export default router;

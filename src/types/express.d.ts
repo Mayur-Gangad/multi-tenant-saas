@@ -1,5 +1,5 @@
 import { ITenant } from "../modules/tenant/tenantInterface";
-import { TokenDto } from "../modules/user/userDTO";
+import { AccessTokenDto } from "../modules/user/userDTO";
 
 declare global {
   //I want to modify an existing global type
@@ -7,7 +7,7 @@ declare global {
     interface Request {
       //We are extending that same interface.
       tenant?: ITenant;
-      user?: TokenDto;
+      user?: AccessTokenDto;
       //Add a new property called tenant to Express Request
     }
   }
