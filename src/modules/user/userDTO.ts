@@ -32,7 +32,6 @@ export interface LoginPayloadDto {
 export interface LoginResponseDto {
   userId: string;
   name: string;
-  password: string;
   status: UserStatus;
   createdAt: string;
   updatedAt: string;
@@ -40,4 +39,13 @@ export interface LoginResponseDto {
   role: UserRole;
 }
 
-export type TokenDto = Pick<LoginResponseDto, "userId" | "tenantId" | "role">;
+export interface AccessTokenDto {
+  userId: string;
+  tenantId: string;
+  role: UserRole | string;
+}
+export interface RefreshTokenDto {
+  userId: string;
+  tenantId: string;
+  role:UserRole
+}

@@ -11,10 +11,10 @@ export class UserDao {
     email: string,
     tenantId: string,
   ): Promise<IUser | null> {
-    return User.findOne({ email, tenantId });
+    return User.findOne({ email, tenantId }).lean();
   }
 
   static async getAllUsers(tenantId: string): Promise<IUser[]> {
-    return User.find({ tenantId });
+    return User.find({ tenantId }).lean();
   }
 }
