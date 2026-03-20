@@ -29,9 +29,9 @@ export class JWT {
 
   static generateRefreshToken = (
     payload: RefreshTokenDto,
-  ): { token: string; jti: string } => {
+  ): { refreshToken: string; jti: string } => {
     const tokenId = new Types.ObjectId();
-    const token = jwt.sign(
+    const refreshToken = jwt.sign(
       {
         userId: payload.userId,
         tenantId: payload.tenantId,
@@ -44,7 +44,7 @@ export class JWT {
       },
     );
     return {
-      token,
+      refreshToken,
       jti: tokenId.toString(),
     };
   };

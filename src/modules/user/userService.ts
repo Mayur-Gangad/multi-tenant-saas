@@ -1,10 +1,14 @@
 import { ApiError } from "../../utils/apiError";
 import { UserDao } from "./userDao";
 import {
+  AdminUpdateDto,
   CreateUserDto,
   UserResponseDto,
+  UserRole,
+  UserUpdateDto,
 } from "./userDTO";
 import { IUser } from "./userInterface";
+import { sanitizeUpdatePayload } from "./userUtils";
 
 export class UserService {
   public static mapUserToDto(user: IUser): UserResponseDto {
@@ -45,5 +49,64 @@ export class UserService {
     return allUsers.map((user) => this.mapUserToDto(user) as UserResponseDto);
   }
 
- 
+  static async findUserById(
+    userId: string,
+    tenantId: string,
+  ): Promise<IUser | null> {
+    return UserDao.getUserById(userId, tenantId);
+  }
+
+ static async updateUser(
+  data: UserUpdateDto | AdminUpdateDto,
+  loggedInUserId: string,
+  targetUserId: string,
+  tenantId: string,
+  loggedInUserRole: UserRole,
+) {
+  // STEP 1: Fetch target user using userId + tenantId (ensures tenant isolation)
+  const existingUser = await UserDao.getUserById(targetUserId, tenantId);
+
+
+
+  // STEP 2: If user does not exist → throw error
+  if (!existingUser) {
+    throw new ApiError(404, "User not found or access denied");
+  }
+
+  // STEP 3: Authorization check
+  // Admin → allowed
+  // Normal user → only self-update allowed
+
+  if (
+    loggedInUserRole !== "admin" &&
+    loggedInUserId !== targetUserId
+  ) {
+    throw new ApiError(403, "You are not authorised to update this user");
+  }
+
+  // STEP 4: Sanitize payload based on role
+  // Removes restricted fields like role, tenantId, etc.
+  const cleanData = sanitizeUpdatePayload(data, loggedInUserRole);
+
+  // STEP 5: Check if there is anything valid to update
+  if (Object.keys(cleanData).length === 0) {
+    throw new ApiError(400, "No valid fields to update");
+  }
+
+  // STEP 6: Call DAO with safe filter and sanitized data
+  const updatedUser = await UserDao.updateUser(
+    cleanData,
+    targetUserId,
+    tenantId,
+  );
+
+
+  // STEP 7: Handle case where update fails (extra safety)
+  if (!updatedUser) {
+    throw new ApiError(400, "Update failed");
+  }
+
+  // STEP 8: Return updated user
+  return updatedUser;
+}
 }

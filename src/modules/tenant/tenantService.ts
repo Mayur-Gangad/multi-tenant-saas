@@ -38,13 +38,9 @@ export class TenantService {
     return allTenants.map(TenantService.toTenantResponseDto);
   }
 
-  static async findTenantBySlug(
+  static async findTenantBySubDomain(
     tenantSlug: string,
-  ): Promise<TenantResponseDto> {
-    const tenant = await TenantDao.findTenantBySlug(tenantSlug);
-    if (!tenant) {
-      throw new ApiError(404, `No Tenant found with domain :${tenantSlug}`);
-    }
-    return TenantService.toTenantResponseDto(tenant);
+  ): Promise<ITenant | null> {
+    return TenantDao.findTenantBySlug(tenantSlug);
   }
 }

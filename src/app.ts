@@ -5,12 +5,13 @@ import healthRoutes from "./modules/health/healthRoutes";
 import authRauter from "./modules/auth/authRoutes";
 import userRoutes from "./modules/user/userRoutes";
 import tenantRoute from "./modules/tenant/tenantRoutes";
-import { tenantResolver } from "./middleware/tenantResolver";
+import { tenantResolverMiddleware } from "./middleware/tenantResolver";
 import { errorHandler } from "./middleware/globalError";
 const app = express();
 
 app.use(
-  cors({   // Then allow cross-origin
+  cors({
+    // Then allow cross-origin
     origin: "http://localhost:3000",
     credentials: true,
   }),
@@ -22,9 +23,9 @@ app.use(cookieParser()); // Parse cookie
 
 app.use("/api/v1/health", healthRoutes);
 
-app.use("/api/v1/auth", tenantResolver, authRauter);
+app.use("/api/v1/auth", authRauter);
 
-app.use("/api/v1/user", tenantResolver, userRoutes);
+app.use("/api/v1/user", tenantResolverMiddleware, userRoutes);
 
 app.use("/api/v1/tenant", tenantRoute);
 

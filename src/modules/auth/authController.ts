@@ -1,24 +1,23 @@
 import { Request, Response } from "express";
 import { ApiError } from "../../utils/apiError";
-import { ApiResponse } from "../../utils/apiResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { LoginPayloadDto } from "../user/userDTO";
 import { AuthService } from "./authService";
 import { cookieOptions } from "../../config/cookieConfig";
+import { RegisterTenantDto } from "./authDto";
+import { ApiResponse } from "../../utils/apiResponse";
 
-export const userLoginController = asyncHandler(
+export const registerTenantController1 = asyncHandler(
   async (req: Request, res: Response) => {
-    const loginPayload: LoginPayloadDto = req.body;
-    const tenantId = req.tenant!._id.toString();
-    const { accessToken, refreshToken } = await AuthService.login(
-      loginPayload.email,
-      loginPayload.password,
-      tenantId,
-    );
-    res.cookie("refreshToken", refreshToken, cookieOptions);
-    res.status(200).json(
-      new ApiResponse("Login Successfull", {
-        accessToken: accessToken,
+    const payload: RegisterTenantDto = req.body;
+
+    const result = await AuthService.register(payload);
+
+    res.cookie("refreshToken", result.refreshToken, cookieOptions);
+
+    res.status(201).json(
+      new ApiResponse("Tenant created successfully", {
+        tenantId: result.tenantId,
+        accessToken: result.accessToken,
       }),
     );
   },
@@ -35,7 +34,7 @@ export const refreshTokenController = asyncHandler(
 
     const result = await AuthService.rotateRefreshToken(oldToken);
     res
-      .cookie("refreshToken", result.newRefreshToken, cookieOptions)
+      .cookie("refreshToken", result.refreshToken, cookieOptions)
       .status(200)
       .json({
         accessToken: result.newAccessToken,

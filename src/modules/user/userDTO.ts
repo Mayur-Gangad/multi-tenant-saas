@@ -24,9 +24,7 @@ export interface UserResponseDto extends BaseUserDto {
 export interface LoginPayloadDto {
   email: string;
   password: string;
-  tenant: string;
   tenantId: string;
-  role: string;
 }
 
 export interface LoginResponseDto {
@@ -47,5 +45,17 @@ export interface AccessTokenDto {
 export interface RefreshTokenDto {
   userId: string;
   tenantId: string;
-  role:UserRole
+  role: UserRole;
+}
+
+export interface UserUpdateDto {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
+export interface AdminUpdateDto extends UserUpdateDto {
+  role?: UserRole;
+
+
 }

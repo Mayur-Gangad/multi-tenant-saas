@@ -1,13 +1,17 @@
 import { Router } from "express";
-import { createTenantController ,getAllTenantsController, getTenantBySlugController} from "./tenantController";
-import { tenantResolver } from "../../middleware/tenantResolver";
+import {
+  getAllTenantsController,
+  getTenantBySubDomainController,
+} from "./tenantController";
+import { tenantResolverMiddleware } from "../../middleware/tenantResolver";
 const router = Router();
 
-router.post("/", createTenantController);
+router.get(
+  "/current",
+  tenantResolverMiddleware,
+  getTenantBySubDomainController,
+);
 
-router.get("/current",tenantResolver,getTenantBySlugController)
-
-router.get("/",getAllTenantsController);
-
+router.get("/", getAllTenantsController);
 
 export default router;
