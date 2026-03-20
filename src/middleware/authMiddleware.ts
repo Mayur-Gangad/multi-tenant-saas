@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/apiError";
 import { JWT } from "../utils/jwt";
+import { UserService } from "../modules/user/userService";
+import { IUser } from "../modules/user/userInterface";
 
 export const authMiddleware = async (
   req: Request,
@@ -8,33 +10,58 @@ export const authMiddleware = async (
   next: NextFunction,
 ) => {
   try {
-    // step.1> Extract autherization header
+    // Step 1: Extract authorization header
     const authHeader = req.headers.authorization;
-    // step.2 > Validate the token
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(401, "Invalid Token");
+      throw new ApiError(401, "Invalid token");
     }
 
-    // step.3 >Extract token from header
+    // Step 2: Extract token
     const token = authHeader.split(" ")[1];
 
-    // step.4 > Verify and decode the token (verify ===> decode )
-    const decode = JWT.verifyAccessToken(token);
+    // Step 3: Verify & decode token
+    const decoded = JWT.verifyAccessToken(token);
 
-    // step.5 > Ensure that the tenant from token must be equal to the tenant from header
-    //             this will protect cross tenant access
-    if (decode.tenantId !== req.tenant?._id.toString()) {
-      
-      throw new ApiError(403, "Mismatched Tenant");
+    // Step 4: Validate tenant
+    if (decoded.tenantId !== req.tenant?._id.toString()) {
+      throw new ApiError(403, "Mismatched tenant");
     }
 
-    // step.6 > Attach decoded user to req for downstream use
-    req.user = decode;
+    // Step 5: Fetch user from DB
+    const user:IUser | null = await UserService.findUserById(
+      decoded.userId,
+      decoded.tenantId,
+    );
 
-    // step.7 > pass control to next middleware (if any) or to controller
+    if (!user?._id) {
+      throw new ApiError(401, "User not found");
+    }
+
+    // Step 6: Validate password change (invalidate old tokens)
+    if (user.passwordChangedAt) {
+      const passwordChangedTime = Math.floor(
+        new Date(user.passwordChangedAt).getTime() / 1000,
+      );
+
+      if (!decoded.iat) {
+        throw new ApiError(403, "Invalid token payload");
+      }
+      if (decoded.iat < passwordChangedTime) {
+        throw new ApiError(401, "Token expired due to password change");
+      }
+    }
+
+    // Step 7: Attach DB user (not token) to request
+      req.user = {
+      userId: user._id.toString(),
+      tenantId: user.tenantId.toString(),
+      role: user.role,
+    };
+
+    // Step 8: Continue
     next();
   } catch (error) {
-    // stept.8 > Catch the error and pass to error handler middleware 
     next(error);
   }
 };

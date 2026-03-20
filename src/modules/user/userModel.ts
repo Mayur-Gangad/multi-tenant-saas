@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
-import bcrypt from "bcrypt";
 import { IUser } from "./userInterface";
+import { hashPassword } from "../../helper/password";
 
 const userSchema = new Schema<IUser>(
   {
@@ -21,6 +21,7 @@ const userSchema = new Schema<IUser>(
       required: true,
       select: false,
     },
+
     role: {
       type: String,
       enum: ["owner", "admin", "manager", "user"],
@@ -37,6 +38,13 @@ const userSchema = new Schema<IUser>(
       required: true,
       index: true,
     },
+    passwordChangedAt: {
+      type: Date,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -45,11 +53,8 @@ const userSchema = new Schema<IUser>(
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-
   if (!this.password) return;
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await hashPassword(this.password);
 });
 
 userSchema.index({ tenantId: 1, email: 1 }, { unique: true });

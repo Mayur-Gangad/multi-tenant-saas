@@ -3,6 +3,7 @@ import {
   createUserController,
   getAllUserController,
   getUserByIdController,
+  updatePasswordController,
   updateUserController,
   userLoginController,
 } from "./userController";
@@ -35,6 +36,14 @@ router.patch(
   authMiddleware,
   authoriseMiddleware("owner", "admin", "user"),
   updateUserController,
+);
+
+// Update password
+router.patch(
+  "/password/:userId",
+  authMiddleware,
+  authoriseMiddleware("owner", "admin", "user"),
+  updatePasswordController,
 );
 
 //Create a user

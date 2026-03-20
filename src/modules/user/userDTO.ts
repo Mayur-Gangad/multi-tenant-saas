@@ -56,6 +56,11 @@ export interface UserUpdateDto {
 
 export interface AdminUpdateDto extends UserUpdateDto {
   role?: UserRole;
+}
 
-
+export interface UpdatePasswordDto {
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

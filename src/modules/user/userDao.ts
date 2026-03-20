@@ -1,4 +1,8 @@
-import { AdminUpdateDto, CreateUserDto, UserUpdateDto } from "./userDTO";
+import {
+  AdminUpdateDto,
+  CreateUserDto,
+  UserUpdateDto,
+} from "./userDTO";
 import { IUser } from "./userInterface";
 import { User } from "./userModel";
 
@@ -30,14 +34,31 @@ export class UserDao {
     userId: string,
     tenantId: string,
   ) {
-
     return User.findOneAndUpdate(
       { _id: userId, tenantId: tenantId },
       {
         $set: data,
       },
       {
-        returnDocument:"after",
+        returnDocument: "after",
+      },
+    );
+  }
+
+  static async updatePassword(
+    hashedPassword: string,
+    userId: string,
+    tenantId: string,
+  ) {
+
+    return User.findOneAndUpdate(
+      { _id: userId, tenantId: tenantId },
+      {
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+      },
+      {
+        returnDocument: "after",
       },
     );
   }

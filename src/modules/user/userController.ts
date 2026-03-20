@@ -3,7 +3,7 @@ import {
   AdminUpdateDto,
   CreateUserDto,
   LoginPayloadDto,
-  LoginResponseDto,
+  UpdatePasswordDto,
   UserResponseDto,
   UserUpdateDto,
 } from "./userDTO";
@@ -87,7 +87,6 @@ export const getUserByIdController = asyncHandler(
 
 export const updateUserController = asyncHandler(
   async (req: Request, res: Response) => {
-
     // Step 1: Check Authentication
     if (!req.user) {
       throw new ApiError(404, "NO user found");
@@ -111,10 +110,29 @@ export const updateUserController = asyncHandler(
       loggedInUserRole,
     );
 
-    // Step 5 : Send response 
+    // Step 5 : Send response
     res.status(200).json({
       message: "User updated successfully",
       data: result,
+    });
+  },
+);
+
+export const updatePasswordController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const payload: UpdatePasswordDto = req.body;
+
+    if (!req.user) {
+      throw new ApiError(404, "NO user found");
+    }
+
+    const loggedInUserId = req.user.userId.toString();
+    const tenantId = req.user.tenantId;
+
+    await UserService.changePassword(payload, loggedInUserId, tenantId);
+
+    res.status(204).json({
+      message: "Password is updated successfully",
     });
   },
 );
