@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createUserController,
+  deleteUserController,
   getAllUserController,
   getUserByIdController,
   updatePasswordController,
@@ -50,7 +51,15 @@ router.patch(
 router.post(
   "/",
   authMiddleware,
-  authoriseMiddleware("admin", "owner", "manger"),
+  authoriseMiddleware("admin", "owner", "manager"),
   createUserController,
+);
+
+// Delete User
+router.delete(
+  "/:userId",
+  authMiddleware,
+  authoriseMiddleware("admin", "owner", "manager"),
+  deleteUserController,
 );
 export default router;

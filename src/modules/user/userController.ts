@@ -89,7 +89,11 @@ export const updateUserController = asyncHandler(
   async (req: Request, res: Response) => {
     // Step 1: Check Authentication
     if (!req.user) {
-      throw new ApiError(404, "NO user found");
+      throw new ApiError(401, "Unauthorized");
+    }
+
+     if (!req.params.userId) {
+      throw new ApiError(400, "UserId is required");
     }
 
     // Step 2 : Extract required fileds
@@ -133,6 +137,36 @@ export const updatePasswordController = asyncHandler(
 
     res.status(204).json({
       message: "Password is updated successfully",
+    });
+  },
+);
+
+export const deleteUserController = asyncHandler(
+  async (req: Request, res: Response) => {
+    
+    if (!req.params.userId) {
+      throw new ApiError(400, "UserId is missing");
+    }
+
+    if (!req.user?.userId) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    if (!req.tenant) {
+      throw new ApiError(400, "Tenant not found");
+    }
+
+    const userId: string = req.params.userId.toString();
+
+    const deletedBy: string = req.user?.userId;
+
+    const tenantId = req.tenant._id.toString();
+
+    const result = await UserService.deleteUser(userId, tenantId, deletedBy);
+
+    res.status(200).json({
+      message: "User deleted successfully",
+      data: result,
     });
   },
 );

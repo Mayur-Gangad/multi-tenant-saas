@@ -32,6 +32,7 @@ export class UserService {
     const existingUser = await UserDao.getUserByEmail(
       user.email,
       user.tenantId,
+      false
     );
 
     if (existingUser) {
@@ -55,7 +56,7 @@ export class UserService {
     userId: string,
     tenantId: string,
   ): Promise<IUser | null> {
-    return UserDao.getUserById(userId, tenantId);
+    return UserDao.getUserById(userId, tenantId, false);
   }
 
   static async updateUser(
@@ -66,18 +67,31 @@ export class UserService {
     loggedInUserRole: UserRole,
   ) {
     // STEP 1: Fetch target user using userId + tenantId (ensures tenant isolation)
-    const existingUser = await UserDao.getUserById(targetUserId, tenantId);
+    const existingUser = await UserDao.getUserById(
+      targetUserId,
+      tenantId,
+      true,
+    );
 
     // STEP 2: If user does not exist → throw error
     if (!existingUser) {
       throw new ApiError(404, "User not found or access denied");
     }
 
+    // Check user is deleted or not
+    if (existingUser.isDeleted) {
+      throw new ApiError(403, "Cannot updated deleted user");
+    }
+
     // STEP 3: Authorization check
     // Admin → allowed
     // Normal user → only self-update allowed
 
-    if (loggedInUserRole !== "admin" && loggedInUserId !== targetUserId) {
+    const allowedRoles = ["admin", "owner", "manager"];
+    if (
+      !allowedRoles.includes(loggedInUserRole) &&
+      loggedInUserId !== targetUserId
+    ) {
       throw new ApiError(403, "You are not authorised to update this user");
     }
 
@@ -99,7 +113,7 @@ export class UserService {
 
     // STEP 7: Handle case where update fails (extra safety)
     if (!updatedUser) {
-      throw new ApiError(400, "Update failed");
+      throw new ApiError(404, "User not found or already deleted");
     }
 
     // STEP 8: Return updated user
@@ -112,10 +126,10 @@ export class UserService {
     tenantId: string,
   ) {
     // Step 1. Extract the fileds
-    const {email, currentPassword, newPassword, confirmPassword } = data;
+    const {  currentPassword, newPassword, confirmPassword } = data;
 
     // Step 2. Validate the DTO
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if ( !currentPassword || !newPassword || !confirmPassword) {
       throw new ApiError(400, "All fileds are required");
     }
 
@@ -125,7 +139,7 @@ export class UserService {
     }
 
     // Step 4. Fetch the user
-    const user = await UserDao.getUserByEmail(email, tenantId);
+    const user = await UserDao.getUserById(loggedInUserId, tenantId,true);
 
     if (!user) {
       throw new ApiError(404, "User not found");
@@ -156,5 +170,30 @@ export class UserService {
 
     await UserDao.updatePassword(hasedPassword, loggedInUserId, tenantId);
     // Step 8. Update the Password and Invalidate the session
+  }
+
+  static async deleteUser(
+    userId: string,
+    tenantId: string,
+    deletedBy: string,
+  ): Promise<IUser | null> {
+    // Step 1. Find user from db by userId and tenantId
+    const user = await UserDao.getUserById(userId, tenantId, false);
+
+    // Step 2. Check wheather user exists or not
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (userId === deletedBy) {
+      throw new ApiError(403, "User cannot delete himself");
+    }
+    const deletedUser = await UserDao.deleteUser(userId, tenantId, deletedBy);
+
+    if (!deletedUser) {
+      throw new ApiError(404, "User not found or Already deleted ");
+    }
+
+    return deletedUser;
   }
 }

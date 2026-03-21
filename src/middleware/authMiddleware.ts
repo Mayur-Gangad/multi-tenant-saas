@@ -29,10 +29,14 @@ export const authMiddleware = async (
     }
 
     // Step 5: Fetch user from DB
-    const user:IUser | null = await UserService.findUserById(
+    const user: IUser | null = await UserService.findUserById(
       decoded.userId,
       decoded.tenantId,
     );
+
+    if (user?.isDeleted) {
+      throw new ApiError(404, "User is deleted");
+    }
 
     if (!user?._id) {
       throw new ApiError(401, "User not found");
@@ -53,7 +57,7 @@ export const authMiddleware = async (
     }
 
     // Step 7: Attach DB user (not token) to request
-      req.user = {
+    req.user = {
       userId: user._id.toString(),
       tenantId: user.tenantId.toString(),
       role: user.role,

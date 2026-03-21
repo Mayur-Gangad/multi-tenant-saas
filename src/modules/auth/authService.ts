@@ -61,7 +61,11 @@ export class AuthService {
     password: string,
     tenantId: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user: IUser | null = await UserDao.getUserByEmail(email, tenantId);
+    const user: IUser | null = await UserDao.getUserByEmail(
+      email,
+      tenantId,
+      true,
+    );
 
     if (!user || !user.password) {
       throw new ApiError(401, "Invalid credentials");
@@ -99,7 +103,7 @@ export class AuthService {
       refreshTokenPayload,
     );
 
-    return { accessToken: accessToken, refreshToken: refreshToken };
+    return { accessToken, refreshToken };
   }
 
   static async rotateRefreshToken(oldRefreshToken: string) {
