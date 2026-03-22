@@ -18,6 +18,7 @@ export interface IRefreshToken {
   tenantId: Types.ObjectId;
   userId: Types.ObjectId;
   tokenHash: string;
+  isRevoked: boolean;
   revokedAt: Date | null;
   revokedBy: UserRole | null;
   expiresAt: Date;

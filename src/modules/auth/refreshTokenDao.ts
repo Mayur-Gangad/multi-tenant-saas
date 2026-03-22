@@ -5,6 +5,9 @@ import { RefreshToken } from "./refreshTokenModel";
 import { ApiError } from "../../utils/apiError";
 
 export class RefreshTokenDao {
+  private static baseFilter(tenantId: string) {
+    return { tenantId, isRevoked: false };
+  }
   static async insertRefreshToken(
     jti: string,
     tokenHash: string,
@@ -16,6 +19,7 @@ export class RefreshTokenDao {
         $set: {
           jti,
           tokenHash,
+          isRevoked: false,
           revokedAt: null,
           revokedBy: null,
           tenantId: refreshToken.tenantId,
@@ -32,20 +36,66 @@ export class RefreshTokenDao {
   static async findActiveToken(
     jti: string,
     oldTokenHash: string,
+    tenantId:string,
     session: ClientSession,
   ): Promise<IRefreshToken | null> {
     return RefreshToken.findOne(
       {
         jti,
         tokenHash: oldTokenHash,
-        revokedAt: null,
+        ...this.baseFilter(tenantId),
       },
       null,
       { session },
-    );
+    ).lean()
   }
 
-  static async rotateToken(
+  static async findTokenByJti(
+    jti: string,
+    userId: string,
+    tenantId: string,
+  ): Promise<IRefreshToken | null> {
+    const token = await RefreshToken.findOne({
+      jti,
+      userId,
+      ...this.baseFilter(tenantId),
+    }).lean()
+
+    if (!token) {
+      return null
+    }
+
+    return token;
+  }
+
+  static async revokeToken(
+    jti: string,
+    userId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const updataedToken = await RefreshToken.findOneAndUpdate(
+      {
+        jti,
+        userId,
+        ...this.baseFilter(tenantId),
+      },
+      {
+        $set: {
+          isRevoked: true,
+          revokedAt: new Date(),
+          revokedBy: userId,
+        },
+      },
+      {
+        returnDocument: "after",
+      },
+    ).lean()
+    if (!updataedToken) {
+     return 
+    }
+  }
+
+  static async rotateRefreshToken(
     oldJti: string,
     userId: string,
     tenantId: string,
@@ -56,9 +106,10 @@ export class RefreshTokenDao {
   ) {
     // lets revoke the old token
     const updatedToken = await RefreshToken.findOneAndUpdate(
-      { jti: oldJti, revokedAt: null },
+      { jti: oldJti, ...this.baseFilter(tenantId) },
       {
         $set: {
+          isRevoked: true,
           revokedAt: new Date(),
           revokedBy: role,
         },
@@ -69,7 +120,7 @@ export class RefreshTokenDao {
     );
 
     if (!updatedToken) {
-      throw new ApiError(401,"Token alredy revoked!!");
+     return null;
     }
 
     await RefreshToken.create(
@@ -78,6 +129,7 @@ export class RefreshTokenDao {
           jti: newJti,
           userId,
           tenantId,
+          isRevoked: false,
           tokenHash: newTokenHash,
           revokedAt: null,
           revokedBy: null,
@@ -87,6 +139,8 @@ export class RefreshTokenDao {
       {
         session,
       },
-    );
+    )
+
+    
   }
 }

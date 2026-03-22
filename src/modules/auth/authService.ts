@@ -10,6 +10,7 @@ import { UserService } from "../user/userService";
 import { UserDao } from "../user/userDao";
 import { RefreshTokenDto } from "../user/userDTO";
 import { IUser } from "../user/userInterface";
+import { IRefreshToken, RefreshTokenPayload } from "./authInterface";
 
 export class AuthService {
   static async register(data: RegisterTenantDto): Promise<RegisterResponseDto> {
@@ -111,18 +112,19 @@ export class AuthService {
       throw new ApiError(403, "Refresh token missing");
     }
     // Get the old refrehToken
-    let decode;
+    let decoded;
     try {
-      decode = JWT.verifyRefreshToken(oldRefreshToken);
+      decoded = JWT.verifyRefreshToken(oldRefreshToken);
     } catch (error) {
       throw new ApiError(401, "Invalid or expired refresh token");
     }
 
     // Extract the jti, userId and tenantId
-    const oldJti = decode.jti;
-    const currentUserId = decode.userId;
-    const currentTenantId = decode.tenantId;
-    const role = decode.role;
+    const oldJti = decoded.jti;
+    const currentUserId = decoded.userId;
+    const currentTenantId = decoded.tenantId;
+    const role = decoded.role;
+    const tenantId = decoded.tenantId
 
     // initialize the  mongoSession
     const session: ClientSession = await mongoose.startSession();
@@ -136,6 +138,7 @@ export class AuthService {
       const activeToken = await RefreshTokenDao.findActiveToken(
         oldJti,
         oldTokenHash,
+        tenantId,
         session,
       );
 
@@ -152,7 +155,7 @@ export class AuthService {
 
       const newTokenHash = hashedRefreshToken(refreshToken);
 
-      await RefreshTokenDao.rotateToken(
+      await RefreshTokenDao.rotateRefreshToken(
         oldJti,
         currentUserId,
         currentTenantId,
@@ -177,5 +180,41 @@ export class AuthService {
       // end the transaction
       session.endSession();
     }
+  }
+
+  static async logout(refreshToken: string) {
+    // Step 1. Decode the token
+    const decoded: RefreshTokenPayload = JWT.verifyRefreshToken(refreshToken);
+
+    // Step 2. Extract the values from decode
+    const { userId, tenantId, jti } = decoded;
+
+    // Step 3. Get the token fro DB
+    const token: IRefreshToken | null = await RefreshTokenDao.findTokenByJti(
+      jti,
+      userId,
+      tenantId,
+    );
+
+    // Step 4. Check token in authorized or not
+    if (!token) {
+      throw new ApiError(401, "Invalid token");
+    }
+
+    // Step 5. Hash the incoming token
+    const currentTokenHash = hashedRefreshToken(refreshToken);
+
+    // Step 6. Check wheather token is compromised/temperd or not
+    if (currentTokenHash !== token.tokenHash) {
+      throw new ApiError(401, "Invalid token");
+    }
+
+    // Step 7. Cheeck token is already revoked or not
+    if (token.isRevoked) {
+      return;
+    }
+
+    //Step 8. Revoke the token
+    await RefreshTokenDao.revokeToken(jti, userId, tenantId);
   }
 }

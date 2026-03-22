@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>(
     deletedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      default:null,
       index: true,
     },
 

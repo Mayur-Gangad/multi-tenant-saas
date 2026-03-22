@@ -4,6 +4,7 @@ import {
   deleteUserController,
   getAllUserController,
   getUserByIdController,
+  logoutController,
   updatePasswordController,
   updateUserController,
   userLoginController,
@@ -62,4 +63,7 @@ router.delete(
   authoriseMiddleware("admin", "owner", "manager"),
   deleteUserController,
 );
+
+// logiut user
+router.post("/logout", authMiddleware, logoutController);
 export default router;

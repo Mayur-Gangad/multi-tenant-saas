@@ -29,7 +29,7 @@ export const refreshTokenController = asyncHandler(
     const oldToken = req.cookies.refreshToken;
 
     if (!oldToken) {
-      throw new ApiError(403, "No token found");
+      throw new ApiError(403, "Invalid token");
     }
 
     const result = await AuthService.rotateRefreshToken(oldToken);

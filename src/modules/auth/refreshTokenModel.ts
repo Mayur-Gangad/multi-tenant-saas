@@ -18,6 +18,10 @@ const refreshTokenSchema = new Schema<IRefreshToken>(
       ref: "User",
       required: true,
     },
+    isRevoked: {
+      type: Boolean,
+      default: false,
+    },
     revokedAt: {
       type: Date,
       default: null,

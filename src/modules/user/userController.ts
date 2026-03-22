@@ -15,6 +15,7 @@ import { IUser } from "./userInterface";
 import { AuthService } from "../auth/authService";
 import { parseUserRole } from "./userUtils";
 
+
 export const userLoginController = asyncHandler(
   async (req: Request, res: Response) => {
     const data: LoginPayloadDto = req.body;
@@ -92,7 +93,7 @@ export const updateUserController = asyncHandler(
       throw new ApiError(401, "Unauthorized");
     }
 
-     if (!req.params.userId) {
+    if (!req.params.userId) {
       throw new ApiError(400, "UserId is required");
     }
 
@@ -143,7 +144,6 @@ export const updatePasswordController = asyncHandler(
 
 export const deleteUserController = asyncHandler(
   async (req: Request, res: Response) => {
-    
     if (!req.params.userId) {
       throw new ApiError(400, "UserId is missing");
     }
@@ -167,6 +167,33 @@ export const deleteUserController = asyncHandler(
     res.status(200).json({
       message: "User deleted successfully",
       data: result,
+    });
+  },
+);
+
+export const logoutController = asyncHandler(
+  async (req: Request, res: Response) => {
+    // Step 1. Get token from cookies
+    const refreshToken: string = req.cookies.refreshToken;
+
+    // Step 2. Check wheather token exists or not
+    if (!refreshToken) {
+      throw new ApiError(401, "Invalid token");
+    }
+
+    // Step 5. Call logout function from authservice
+    await AuthService.logout(refreshToken);
+
+    // Step 4. Clear the cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    // Step 5. Send response
+    res.status(200).json({
+      message: "User logged out successfully",
     });
   },
 );

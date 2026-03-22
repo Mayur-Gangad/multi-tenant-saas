@@ -26,7 +26,7 @@ export class UserDao {
     const user = await query;
 
     if (!user) {
-      throw new ApiError(404, "User not found");
+      return null
     }
 
     return user;
@@ -52,7 +52,7 @@ export class UserDao {
     const user = await query;
 
     if (!user) {
-      throw new ApiError(404, "User not found");
+     return null
     }
     return user;
   }
